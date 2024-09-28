@@ -1,1 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmes e Séries</title>
+    <link href="https://vjs.zencdn.net/7.17.0/video-js.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .movie {
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .movie img {
+            width: 200px;
+            height: auto;
+            border-radius: 5px;
+        }
+        .movie:hover {
+            transform: scale(1.05);
+        }
+        .video-player {
+            display: none;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .video-js {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Filmes e Séries</h1>
+<div class="container" id="movie-container"></div>
+
+<div class="video-player" id="video-player">
+    <video
+        id="my-video"
+        class="video-js"
+        controls
+        preload="auto"
+        width="640"
+        height="264"
+        data-setup="{}"
+    >
+        <source id="video-source" src="" type="video/mp4">
+        <p class="vjs-no-js">
+            Para assistir ao vídeo, habilite o JavaScript.
+        </p>
+    </video>
+</div>
+
+<script src="https://vjs.zencdn.net/7.17.0/video.min.js"></script>
+<script>
+    const m3uSources = [
+        'https://raw.githubusercontent.com/listadobill/filmeseseries/refs/heads/main/1.m3u',
+        'https://raw.githubusercontent.com/listadobill/filmeseseries/refs/heads/main/2.m3u',
+        'https://raw.githubusercontent.com/listadobill/filmeseseries/refs/heads/main/3.m3u'
+    ];
+
+    async function fetchMovies() {
+        const movies = [];
+        for (const source of m3uSources) {
+            const response = await fetch(source);
+            const data = await response.text();
+            const lines = data.split('\n');
+            for (let line of lines) {
+                if (line && !line.startsWith('#')) {
+                    movies.push(line.trim());
+                }
+            }
+        }
+        return movies;
+    }
+
+    function createMovieElement(movie) {
+        const div = document.createElement('div');
+        div.classList.add('movie');
+        const img = document.createElement('img');
+        img.src = `https://via.placeholder.com/200?text=${movie.split('/').pop()}`; // Placeholder for movie image
+        div.appendChild(img);
+        div.onclick = () => playMovie(movie);
+        return div;
+    }
+
+    function playMovie(movie) {
+        const videoSource = document.getElementById('video-source');
+        videoSource.src = movie;
+        const player = videojs('my-video');
+        player.ready(function () {
+            player.src({ type: 'video/mp4', src: movie });
+            player.play();
+        });
+        document.getElementById('video-player').style.display = 'block';
+    }
+
+    async function init() {
+        const movies = await fetchMovies();
+        const container = document.getElementById('movie-container');
+        movies.forEach(movie => {
+            const movieElement = createMovieElement(movie);
+            container.appendChild(movieElement);
+        });
+    }
+
+    init();
+</script>
+
+</body>
+</html>
 
